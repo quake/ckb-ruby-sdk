@@ -1,6 +1,6 @@
 module CKB
   class TransactionBuilder
-    attr_accessor :transaction, :rpc, :cell_metas, :unsigned_transaction
+    attr_accessor :transaction, :rpc, :cell_metas
 
     def initialize(h, rpc)
       self.transaction = CKB::Types::Transaction.new(h)
@@ -21,14 +21,12 @@ module CKB
           change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
           if change_output_index
             self.transaction.outputs[change_output_index].capacity = change_capacity
-            self.unsigned_transaction = self.transaction.dup
-            self.unsigned_transaction
+            self.transaction
           else
             raise "cannot find change output"
           end
         elsif change_capacity == 0
-          self.unsigned_transaction = self.transaction.dup
-          self.unsigned_transaction
+          self.transaction
         end
       end
     end

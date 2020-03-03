@@ -2,10 +2,11 @@ require "secp256k1"
 
 module CKB
   class Wallet
-    attr_accessor :rpc
+    attr_accessor :rpc, :collector_type
 
-    def initialize(rpc)
+    def initialize(rpc, collector_type = :default_scanner)
       self.rpc = rpc
+      self.collector_type = collector_type
     end
 
     # @param from_address [String]
@@ -32,7 +33,11 @@ module CKB
         version: 0, cell_deps: [], header_deps: [], inputs: [],
         outputs: outputs, outputs_data: outputs_data, witnesses: []
       }, self.rpc)
-      collector = CKB::Collector.by_rpc(self.rpc, input_scripts.map{|script| script.compute_hash.to_hex})
+      collector = if self.collector_type == :default_indexer
+        CKB::Collector.default_indexer(self.rpc, input_scripts.map{|script| script.compute_hash.to_hex})
+      else
+        CKB::Collector.default_scanner(self.rpc, input_scripts.map{|script| script.compute_hash.to_hex})
+      end
       builder.generate(collector)
       builder.sign(Hash[input_scripts.zip(private_keys.map{|pk| Secp256k1::PrivateKey.new(privkey: pk)})])
       builder.transaction
