@@ -2,12 +2,12 @@ module CKB
   module Types
     module HashInitialize
       def hash_initialize(attributes)
-        attr_accessor *attributes.keys
+        attr_accessor(*attributes.keys)
 
         define_method :initialize do |h|
           h.keep_if {|k, v| attributes.include?(k)}.each do |k, v|
             attr_type = attributes[k]
-            v = if attr_type.is_a?(Array)
+            _v = if attr_type.is_a?(Array)
               clazz = attr_type.first
               v.map {|a| a.is_a?(clazz) ? a : clazz.new(a)}
             elsif [CKB::Types::H256, CKB::Types::Bytes].include?(attr_type)
@@ -23,7 +23,7 @@ module CKB
                 v
               end
             end
-            public_send("#{k}=", v)
+            public_send("#{k}=", _v)
           end
         end
 
@@ -31,7 +31,7 @@ module CKB
           (self.instance_variables - [:@compute_hash]).each_with_object({}) do |attr, h|
             value = self.instance_variable_get(attr)
             unless value.nil?
-              v = if value.is_a?(Array)
+              _v = if value.is_a?(Array)
                 if value.empty?
                   []
                 elsif value.first.is_a?(Integer)
@@ -46,7 +46,7 @@ module CKB
               else
                 value.as_json
               end
-              h[attr.to_s.delete_prefix("@")] = v
+              h[attr.to_s.delete_prefix("@")] = _v
             end
           end
         end

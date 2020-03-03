@@ -32,6 +32,10 @@ module CKB
       def outputs_capacity
         outputs.sum(&:capacity)
       end
+
+      def serialized_size_in_block
+        self.serialize.size + 4
+      end
     end
   end
 end

@@ -8,11 +8,15 @@ module CKB
       self.cell_metas= []
     end
 
-    def generate(collector, fee_rate)
+    # Generate unsigned transaction
+    # @param collector [Enumerator] `CellMeta` enumerator
+    # @param fee_rate  [Integer] Default 1 shannon / transaction byte
+    def generate(collector, fee_rate = 1)
       collector.each do |cell_meta|
         cell_meta.generate(self)
 
-        change_capacity = self.inputs_capacity - self.transaction.outputs_capacity
+        fee = self.transaction.serialized_size_in_block * fee_rate
+        change_capacity = self.inputs_capacity - self.transaction.outputs_capacity - fee
         if change_capacity > 0
           change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
           if change_output_index

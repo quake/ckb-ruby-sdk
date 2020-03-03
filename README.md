@@ -1,43 +1,82 @@
-# Ckb
+# ckb-ruby-sdk
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ckb`. To experiment with that code, run `bin/console` for an interactive prompt.
+Ruby SDK for CKB
 
-TODO: Delete this and the text above, and describe your gem
+The ckb-ruby-sdk is still under development and NOT production ready. You should get familiar with CKB transaction structure and RPC before using it.
+
+## Prerequisites
+
+Require Ruby 2.4 and above.
+
+### Ubuntu
+
+```bash
+sudo apt install libsodium-dev
+```
+
+This SDK depends on the [bitcoin-secp256k1](https://github.com/cryptape/ruby-bitcoin-secp256k1) gem. You need to install libsecp256k1 with `--enable-module-recovery` (on which bitcoin-secp256k1 depends) manually. Follow [this](https://github.com/cryptape/ruby-bitcoin-secp256k1#prerequisite) to do so.
+
+### macOS
+
+```bash
+brew tap nervosnetwork/tap
+brew install libsodium libsecp256k1
+```
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'ckb'
+gem 'ckb-ruby-sdk', github: 'quake/ckb-ruby-sdk'
 ```
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
-Or install it yourself as:
+If you just want to use it in a console:
 
-    $ gem install ckb
+```
+git clone https://github.com/quake/ckb-ruby-sdk.git
+cd ckb-ruby-sdk
+bundle install
+bundle exec bin/console
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+RPC interface returns parsed `JSON` object
 
-## Development
+```ruby
+rpc = CKB::RPC.new
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+# using RPC `get_tip_header`, it will return a Hash
+rpc.get_tip_header
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Send capacity
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ckb. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+```ruby
+# create api first
+api = CKB::API.new
+# create wallet object
+wallet = CKB::Wallet.new(rpc)
+# generate transaction
+tx = wallet.gen_tx(
+    "ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37",
+    "ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4",
+    100_0000_0000,
+    "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex
+)
+# send transaction
+rpc.send_transaction(tx.as_json)
+```
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
-## Code of Conduct
+## Changelog
 
-Everyone interacting in the Ckb project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/ckb/blob/master/CODE_OF_CONDUCT.md).
+See [CHANGELOG](CHANGELOG.md) for more information.

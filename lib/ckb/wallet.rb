@@ -33,7 +33,7 @@ module CKB
         outputs: outputs, outputs_data: outputs_data, witnesses: []
       }, self.rpc)
       collector = CKB::Collector.by_rpc(self.rpc, input_scripts.map{|script| script.compute_hash.to_hex})
-      builder.generate(collector, 1000)
+      builder.generate(collector)
       builder.sign(Hash[input_scripts.zip(private_keys.map{|pk| Secp256k1::PrivateKey.new(privkey: pk)})])
       builder.transaction
     end
