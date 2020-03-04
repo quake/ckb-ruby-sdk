@@ -58,8 +58,8 @@ rpc.get_tip_header
 Send capacity
 
 ```ruby
-# create api first
-api = CKB::API.new
+# create rpc first
+rpc = CKB::RPC.new
 # create wallet object
 wallet = CKB::Wallet.new(rpc)
 # generate transaction
