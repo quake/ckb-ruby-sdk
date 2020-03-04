@@ -35,7 +35,7 @@ module CKB
                 if value.empty?
                   []
                 elsif value.first.is_a?(Integer)
-                  "0x#{value.pack("c*").unpack("H*").first}"
+                  "0x#{value.pack("C*").unpack("H*").first}"
                 else
                   value.map(&:as_json)
                 end

@@ -1,5 +1,3 @@
-require "secp256k1"
-
 module CKB
   class Wallet
     attr_accessor :rpc, :collector_type
@@ -12,13 +10,13 @@ module CKB
     # @param from_address [String]
     # @param to_address   [String]
     # @param capacity     [Integer] unit shannon
-    # @param private_key  [String] raw format
-    def gen_tx(from_address, to_address, capacity, private_key)
+    # @param context      [String | Array] private key string in raw format or multisig context
+    def gen_tx(from_address, to_address, capacity, context)
       # use from_address as change_address and set its capacity to 0
-      advance_gen_tx [from_address], [to_address, from_address], [capacity, 0], [private_key]
+      advance_gen_tx [from_address], [to_address, from_address], [capacity, 0], [context]
     end
 
-    def advance_gen_tx(from_addresses, to_addresses, capacities, private_keys)
+    def advance_gen_tx(from_addresses, to_addresses, capacities, contexts)
       input_scripts = from_addresses.map do |address|
         CKB::Address.parse(address).first
       end
@@ -38,8 +36,9 @@ module CKB
       else
         CKB::Collector.default_scanner(self.rpc, input_scripts.map{|script| script.compute_hash.to_hex})
       end
-      builder.generate(collector)
-      builder.sign(Hash[input_scripts.zip(private_keys.map{|pk| Secp256k1::PrivateKey.new(privkey: pk)})])
+      contexts = Hash[input_scripts.zip(contexts)]
+      builder.generate(collector, contexts)
+      builder.sign(contexts)
       builder.transaction
     end
   end

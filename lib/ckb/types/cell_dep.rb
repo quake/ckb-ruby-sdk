@@ -18,6 +18,13 @@ module CKB
           dep_type: CellDep::DEP_TYPE_DEP_GROUP
         )
       end
+
+      def self.standard_secp256k1_blake160_multisig_all(genesis_block)
+        CellDep.new(
+          out_point: CKB::Types::OutPoint.new(tx_hash: CKB::Types::Transaction.new(genesis_block[:transactions][1]).compute_hash.to_hex, index: 1),
+          dep_type: CellDep::DEP_TYPE_DEP_GROUP
+        )
+      end
     end
   end
 end

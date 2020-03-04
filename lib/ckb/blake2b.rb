@@ -13,7 +13,7 @@ module CKB
 
     def update(message)
       if message.is_a?(Array)
-        @blake2b.update(message.pack("c*"))
+        @blake2b.update(message.pack("C*"))
       else
         @blake2b.update(message)
       end

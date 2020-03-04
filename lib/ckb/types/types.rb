@@ -13,7 +13,7 @@ module CKB
       end
 
       def as_json
-        "0x#{self.pack("c*").unpack("H*").first}"
+        "0x#{self.pack("C*").unpack("H*").first}"
       end
     end
 
