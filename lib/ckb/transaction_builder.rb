@@ -10,7 +10,7 @@ module CKB
 
     # Generate unsigned transaction
     # @param collector [Enumerator] `CellMeta` enumerator
-    # @param contexts  [Hash]
+    # @param contexts  [Hash], key: input lock script, value: tx generating context
     # @param fee_rate  [Integer] Default 1 shannon / transaction byte
     def generate(collector, contexts, fee_rate = 1)
       change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
@@ -40,6 +40,7 @@ module CKB
       raise "can't collect enough inputs"
     end
 
+    # @param contexts  [Hash], key: input lock script, value: tx signature context
     def sign(contexts)
       self.cell_metas.each do |cell_meta|
         cell_meta.sign(self, contexts[cell_meta.output.lock])

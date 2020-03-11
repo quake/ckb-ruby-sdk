@@ -29,11 +29,11 @@ module CKB
         witness = if tx_builder.cell_metas.any?{|cm| cm.output.lock == self.output.lock}
           []
         else
-          # build witness with signature placeholder
+          # build witness with signature placeholder, context: [S, R, M, N, blake160(pubkey1), blake160(pubkey2), ...]
           bytes =
             context[0, 4] +
-            context[4..-1].map{|key| CKB::Blake2b.digest(Secp256k1::PrivateKey.new(privkey: key).pubkey.serialize).bytes.first(20)}.flatten +
-            Array.new((context.size - 4) * 65, 0)
+            context[4..-1].map(&:bytes).flatten +
+            Array.new(context[2] * 65, 0)
           CKB::Types::WitnessArgs.new(lock: CKB::Types::Bytes.new(bytes)).serialize
         end
         tx_builder.transaction.witnesses << CKB::Types::Bytes.new(witness)
@@ -73,9 +73,10 @@ module CKB
             blake2b << witness
           end
           digest = blake2b.digest
-          total_public_keys = context[3]
+          # context: [N, privkey1, privkey2, ...]
+          total_public_keys = context[0]
           signature_offset = 24 + 20 * total_public_keys
-          context[4..-1].each_with_index do |key, index|
+          context[1..-1].each_with_index do |key, index|
             private_key = Secp256k1::PrivateKey.new(privkey: key)
             signature, recid = private_key.ecdsa_recoverable_serialize(private_key.ecdsa_sign_recoverable(blake2b.digest, raw: true))
             tx_builder.transaction.witnesses[cell_meta_index][signature_offset + 65 * index, 65] = signature.bytes + [recid]
