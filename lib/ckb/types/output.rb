@@ -12,7 +12,7 @@ module CKB
 
       # https://github.com/nervosnetwork/ckb/wiki/Occupied-Capacity
       def occupied_capacity(data)
-        8 + data.size + lock.occupied_capacity + type.nil? ? 0 : type.occupied_capacity
+        (8 + data.size + lock.occupied_capacity + (type.nil? ? 0 : type.occupied_capacity)) * 1_0000_0000
       end
     end
   end
