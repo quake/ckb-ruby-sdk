@@ -26,18 +26,6 @@ module CKB
       def occupied_capacity
         args.size + 32 + 1
       end
-
-      def standard_secp256k1_blake160_sighash_all?
-        code_hash == SECP256K1_BLAKE160_SIGHASH_ALL_TYPE_HASH &&
-          hash_type == HASH_TYPE_TYPE &&
-          args.size == 20
-      end
-
-      def standard_secp256k1_blake160_multisig_all?
-        code_hash == SECP256K1_BLAKE160_MULTISIG_ALL_TYPE_HASH &&
-          hash_type == HASH_TYPE_TYPE &&
-          args.size == 20
-      end
     end
   end
 end

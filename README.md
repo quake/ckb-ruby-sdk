@@ -49,7 +49,7 @@ bundle exec bin/console
 RPC interface returns parsed `JSON` object
 
 ```ruby
-rpc = CKB::RPC.new
+rpc = CKB::Config.instance.rpc
 
 # using RPC `get_tip_header`, it will return a Hash
 rpc.get_tip_header
@@ -58,17 +58,14 @@ rpc.get_tip_header
 Send capacity
 
 ```ruby
-# create rpc first
-rpc = CKB::RPC.new
 # create wallet object
-wallet = CKB::Wallet.new(rpc)
-from = "ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37"
+wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
 # build transaction
-tx_builder = wallet.build(from, "ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", 100_0000_0000)
+tx_builder = wallet.build("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", 100_0000_0000)
 # sign
-tx = wallet.sign(tx_builder, from, "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex)
+tx = wallet.sign(tx_builder, "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex)
 # send transaction
-rpc.send_transaction(tx.as_json)
+CKB::Config.instance.rpc.send_transaction(tx.as_json)
 ```
 
 ## License

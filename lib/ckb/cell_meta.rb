@@ -9,41 +9,23 @@ module CKB
       self.output = output
     end
 
-    def generate(tx_builder, context)
-      if self.output.lock.standard_secp256k1_blake160_sighash_all?
-        tx_builder.transaction.inputs << CKB::Types::Input.new(since: 0, previous_output: self.out_point)
-        cell_dep = CKB::Types::CellDep.standard_secp256k1_blake160_sighash_all(tx_builder.rpc.genesis_block)
+    class DefaultSighash
+      def self.generate(cell_meta, tx_builder, context)
+        tx_builder.transaction.inputs << CKB::Types::Input.new(since: 0, previous_output: cell_meta.out_point)
+        cell_dep = CKB::Types::CellDep.standard_secp256k1_blake160_sighash_all
         tx_builder.transaction.cell_deps << cell_dep unless tx_builder.transaction.cell_deps.include?(cell_dep)
-        witness = if tx_builder.cell_metas.any?{|cm| cm.output.lock == self.output.lock}
+        witness = if tx_builder.cell_metas.any?{|cm| cm.output.lock == cell_meta.output.lock}
           []
         else
           # build witness with signature placeholder
           CKB::Types::WitnessArgs.new(lock: CKB::Types::Bytes.new(Array.new(65, 0))).serialize
         end
         tx_builder.transaction.witnesses << CKB::Types::Bytes.new(witness)
-        tx_builder.cell_metas << self
-      elsif self.output.lock.standard_secp256k1_blake160_multisig_all?
-        tx_builder.transaction.inputs << CKB::Types::Input.new(since: 0, previous_output: self.out_point)
-        cell_dep = CKB::Types::CellDep.standard_secp256k1_blake160_multisig_all(tx_builder.rpc.genesis_block)
-        tx_builder.transaction.cell_deps << cell_dep unless tx_builder.transaction.cell_deps.include?(cell_dep)
-        witness = if tx_builder.cell_metas.any?{|cm| cm.output.lock == self.output.lock}
-          []
-        else
-          # build witness with signature placeholder, context: [S, R, M, N, blake160(pubkey1), blake160(pubkey2), ...]
-          bytes =
-            context[0, 4] +
-            context[4..-1].map(&:bytes).flatten +
-            Array.new(context[2] * 65, 0)
-          CKB::Types::WitnessArgs.new(lock: CKB::Types::Bytes.new(bytes)).serialize
-        end
-        tx_builder.transaction.witnesses << CKB::Types::Bytes.new(witness)
-        tx_builder.cell_metas << self
+        tx_builder.cell_metas << cell_meta
       end
-    end
 
-    def sign(tx_builder, context)
-      if self.output.lock.standard_secp256k1_blake160_sighash_all?
-        cell_meta_index = tx_builder.cell_metas.find_index{|cm| cm.out_point == self.out_point}
+      def self.sign(cell_meta, tx_builder, context)
+        cell_meta_index = tx_builder.cell_metas.find_index{|cm| cm.out_point == cell_meta.out_point}
         lock = tx_builder.cell_metas[cell_meta_index].output.lock
         grouped_indexes = tx_builder.cell_metas.map.with_index{|cm, index| index if cm.output.lock == lock }.compact
         if cell_meta_index == grouped_indexes.first
@@ -59,8 +41,30 @@ module CKB
           signature, recid = private_key.ecdsa_recoverable_serialize(private_key.ecdsa_sign_recoverable(blake2b.digest, raw: true))
           tx_builder.transaction.witnesses[cell_meta_index][20, 65] = signature.bytes + [recid]
         end
-      elsif self.output.lock.standard_secp256k1_blake160_multisig_all?
-        cell_meta_index = tx_builder.cell_metas.find_index{|cm| cm.out_point == self.out_point}
+      end
+    end
+
+    class DefaultMultisig
+      def self.generate(cell_meta, tx_builder, context)
+        tx_builder.transaction.inputs << CKB::Types::Input.new(since: 0, previous_output: cell_meta.out_point)
+        cell_dep = CKB::Types::CellDep.standard_secp256k1_blake160_multisig_all
+        tx_builder.transaction.cell_deps << cell_dep unless tx_builder.transaction.cell_deps.include?(cell_dep)
+        witness = if tx_builder.cell_metas.any?{|cm| cm.output.lock == cell_meta.output.lock}
+          []
+        else
+          # build witness with signature placeholder, context: [S, R, M, N, blake160(pubkey1), blake160(pubkey2), ...]
+          bytes =
+            context[0, 4] +
+            context[4..-1].map(&:bytes).flatten +
+            Array.new(context[2] * 65, 0)
+          CKB::Types::WitnessArgs.new(lock: CKB::Types::Bytes.new(bytes)).serialize
+        end
+        tx_builder.transaction.witnesses << CKB::Types::Bytes.new(witness)
+        tx_builder.cell_metas << cell_meta
+      end
+
+      def self.sign(cell_meta, tx_builder, context)
+        cell_meta_index = tx_builder.cell_metas.find_index{|cm| cm.out_point == cell_meta.out_point}
         lock = tx_builder.cell_metas[cell_meta_index].output.lock
         grouped_indexes = tx_builder.cell_metas.map.with_index{|cm, index| index if cm.output.lock == lock }.compact
         if cell_meta_index == grouped_indexes.first
@@ -78,7 +82,7 @@ module CKB
           signature_offset = 24 + 20 * total_public_keys
           context[1..-1].each_with_index do |key, index|
             private_key = Secp256k1::PrivateKey.new(privkey: key)
-            signature, recid = private_key.ecdsa_recoverable_serialize(private_key.ecdsa_sign_recoverable(blake2b.digest, raw: true))
+            signature, recid = private_key.ecdsa_recoverable_serialize(private_key.ecdsa_sign_recoverable(digest, raw: true))
             tx_builder.transaction.witnesses[cell_meta_index][signature_offset + 65 * index, 65] = signature.bytes + [recid]
           end
         end

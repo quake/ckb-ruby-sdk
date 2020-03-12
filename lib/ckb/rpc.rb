@@ -7,9 +7,7 @@ module CKB
   class RPC
     attr_reader :uri, :http
 
-    DEFAULT_URL = "http://127.0.0.1:8114"
-
-    def initialize(host: DEFAULT_URL)
+    def initialize(host)
       @uri = URI(host)
       @http = Net::HTTP::Persistent.new
     end
@@ -42,7 +40,7 @@ module CKB
       # `[42]` and `"abc":42` will be converted to `["0x2a"]` and `"abc":"0x2a"`
       request.body = body.to_json.gsub(/[:\[,]\K(\d+)/) { |s| '"0x%x"' % s }
       request['Content-Type'] = 'application/json'
-      http.request(uri, request)
+      self.http.request(self.uri, request)
     end
 
     def parse_response(response)

@@ -1,5 +1,6 @@
 module CKB::Collector
-  def self.default_scanner(rpc, lock_hashes)
+  def self.default_scanner(lock_hashes)
+    rpc = CKB::Config.instance.rpc
     tip_number = rpc.get_tip_block_number.to_i(16)
     lock_hash_index, from, cell_metas_index, cell_metas = 0, 0, 0, []
     Enumerator.new do |result|
@@ -22,7 +23,8 @@ module CKB::Collector
     end
   end
 
-  def self.default_indexer(rpc, lock_hashes)
+  def self.default_indexer(lock_hashes)
+    rpc = CKB::Config.instance.rpc
     lock_hash_index, page, cell_metas_index, cell_metas = 0, 0, 0, []
     Enumerator.new do |result|
       while cell_metas_index < cell_metas.size || lock_hash_index < lock_hashes.size

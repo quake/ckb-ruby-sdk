@@ -1,10 +1,9 @@
 module CKB
   class TransactionBuilder
-    attr_accessor :transaction, :rpc, :cell_metas
+    attr_accessor :transaction, :cell_metas
 
-    def initialize(h, rpc)
+    def initialize(h)
       self.transaction = CKB::Types::Transaction.new(h)
-      self.rpc = rpc
       self.cell_metas= []
     end
 
@@ -16,7 +15,8 @@ module CKB
       change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
 
       collector.each do |cell_meta|
-        cell_meta.generate(self, contexts[cell_meta.output.lock])
+        handler = CKB::Config.instance.cell_meta_handler(cell_meta)
+        handler.generate(cell_meta, self, contexts[cell_meta.output.lock])
 
         # calculate fee and update change output capacity
         fee = self.transaction.serialized_size_in_block * fee_rate
@@ -43,7 +43,8 @@ module CKB
     # @param contexts  [Hash], key: input lock script, value: tx signature context
     def sign(contexts)
       self.cell_metas.each do |cell_meta|
-        cell_meta.sign(self, contexts[cell_meta.output.lock])
+        handler = CKB::Config.instance.cell_meta_handler(cell_meta)
+        handler.sign(cell_meta, self, contexts[cell_meta.output.lock])
       end
     end
 
