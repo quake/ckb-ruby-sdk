@@ -6,3 +6,4 @@
 /pkg/
 /spec/reports/
 /tmp/
+.ckb_collector_default_scanner_store

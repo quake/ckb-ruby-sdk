@@ -19,12 +19,15 @@ class WalletTest < Minitest::Test
     rpc.send_transaction(tx.as_json)
   end
 
+  # enable `Indexer` module in ckb.toml `rpc` section
+  # and index with lock hash by rpc first:
+  # CKB::Config.instance.rpc.index_lock_hash("0xc219351b150b900e50a7039f1e448b844110927e5fd9bd30425806cb8ddff1fd", 0)
   def test_gen_tx_by_default_indexer
-    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37", :default_indexer)
+    wallet = CKB::Wallet.new("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", :default_indexer)
     # build tx to transfer 1024 ckb to a multisig address
     tx_builder = wallet.build("ckt1qyq6tkfaxx9dupue4k06m3hfsz7l7p69nzkqmx27vt", 1024_0000_0000)
     # sign with from address's private key
-    tx = wallet.sign(tx_builder, "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex)
+    tx = wallet.sign(tx_builder, "0x63d86723e08f0f813a36ce6aa123bb2289d90680ae1e99d4de8cdb334553f24d".from_hex)
 
     rpc = CKB::Config.instance.rpc
     rpc.send_transaction(tx.as_json)
