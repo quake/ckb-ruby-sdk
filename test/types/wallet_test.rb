@@ -43,4 +43,19 @@ class WalletTest < Minitest::Test
     rpc = CKB::Config.instance.rpc
     rpc.send_transaction(tx.as_json)
   end
+
+  def test_advance_build
+    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+    # build tx to transfer 1234 and 4321 ckb to two addresses
+    tx_builder = wallet.advance_build(
+      "ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4" => 1234_0000_0000,
+      "ckt1qyq6tkfaxx9dupue4k06m3hfsz7l7p69nzkqmx27vt" => 4321_0000_0000,
+      "ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37" => 0, # set capacity to zero as change address
+    )
+    # sign with from address's private key
+    tx = wallet.sign(tx_builder, "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex)
+
+    rpc = CKB::Config.instance.rpc
+    rpc.send_transaction(tx.as_json)
+  end
 end

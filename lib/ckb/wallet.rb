@@ -12,21 +12,21 @@ module CKB
     # @param context      [String | Array] private key string in raw format or multisig context
     def build(to_address, capacity, context = nil)
       # use first from_address as change_address and set its capacity to 0
-      advance_build self.from_addresses, [to_address, from_addresses.first], [capacity, 0], [context]
+      advance_build({to_address => capacity, from_addresses.first => 0}, [context])
     end
 
     def sign(tx_builder, context)
-      advance_sign tx_builder, self.from_addresses, [context]
+      advance_sign tx_builder, [context]
     end
 
-    def advance_build(from_addresses, to_addresses, capacities, contexts)
-      input_scripts = from_addresses.map do |address|
+    def advance_build(addresses_and_capacities, contexts = [])
+      input_scripts = self.from_addresses.map do |address|
         CKB::Address.parse(address).first
       end
 
-      outputs = to_addresses.map.with_index do |address, i|
+      outputs = addresses_and_capacities.map do |address, capacity|
         script = CKB::Address.parse(address).first
-        CKB::Types::Output.new capacity: capacities[i], lock: script, type: nil
+        CKB::Types::Output.new capacity: capacity, lock: script, type: nil
       end
       outputs_data = Array.new(outputs.size, CKB::Types::Bytes.new([]))
 
@@ -43,8 +43,8 @@ module CKB
       tx_builder
     end
 
-    def advance_sign(tx_builder, from_addresses, contexts)
-      input_scripts = from_addresses.map do |address|
+    def advance_sign(tx_builder, contexts)
+      input_scripts = self.from_addresses.map do |address|
         CKB::Address.parse(address).first
       end
 
