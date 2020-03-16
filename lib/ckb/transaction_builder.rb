@@ -44,7 +44,9 @@ module CKB
     def sign(contexts)
       self.cell_metas.each do |cell_meta|
         handler = CKB::Config.instance.cell_meta_handler(cell_meta)
-        handler.sign(cell_meta, self, contexts[cell_meta.output.lock])
+        if context = contexts[cell_meta.output.lock]
+          handler.sign(cell_meta, self, context)
+        end
       end
     end
 

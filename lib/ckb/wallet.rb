@@ -9,7 +9,6 @@ module CKB
 
     # @param to_address   [String]
     # @param capacity     [Integer] unit shannon
-    # @param context      [String | Array] private key string in raw format or multisig context
     def build(to_address, capacity, context = nil)
       # use first from_address as change_address and set its capacity to 0
       advance_build({to_address => capacity, from_addresses.first => 0}, [context])
