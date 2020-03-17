@@ -10,7 +10,7 @@ module CKB::Address
   MAX_PAYLOAD_SIZE = 2**31 - 1
 
   # https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0021-ckb-address-format/0021-ckb-address-format.md
-  def self.generate(script, network = CKB.network)
+  def self.generate(script, hrp = HRP_MAINNET)
     script = CKB::Types::Script.new(script) if script.is_a?(Hash)
     payload = if script.hash_type == CKB::Types::Script::HASH_TYPE_TYPE && script.args.size == 20
       if script.code_hash == CKB::Types::Script::SECP256K1_BLAKE160_SIGHASH_ALL_TYPE_HASH
@@ -20,7 +20,7 @@ module CKB::Address
       end
     end || [script.hash_type == CKB::Types::Script::HASH_TYPE_DATA ? 2 : 4] + script.code_hash + script.args
 
-    Bech32.encode((network == CKB::MAINNET ? HRP_MAINNET : HRP_TESTNET).to_s, self.convert_bits(payload, 8, 5))
+    Bech32.encode(hrp.to_s, self.convert_bits(payload, 8, 5))
   end
 
   def self.parse(address)

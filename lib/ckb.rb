@@ -8,18 +8,3 @@ require "ckb/rpc"
 require "ckb/collector"
 require "ckb/transaction_builder"
 require "ckb/wallet"
-
-module CKB
-  MAINNET = :mainnet
-  TESTNET = :testnet
-
-  @@network = MAINNET
-
-  def self.network=(value)
-    @@network = value
-  end
-
-  def self.network
-    @@network
-  end
-end
