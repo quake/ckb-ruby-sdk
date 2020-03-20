@@ -17,27 +17,30 @@ module CKB
       collector.each do |cell_meta|
         handler = CKB::Config.instance.cell_meta_handler(cell_meta)
         handler.generate(cell_meta, self, contexts[cell_meta.output.lock])
-
-        # calculate fee and update change output capacity
-        fee = self.transaction.serialized_size_in_block * fee_rate
-        change_capacity = self.inputs_capacity - self.transaction.outputs_capacity - fee
-        if change_output_index
-          change_output = self.transaction.outputs[change_output_index]
-          change_output_data = self.transaction.outputs_data[change_output_index]
-          if change_capacity >= change_output.occupied_capacity(change_output_data)
-            change_output.capacity = change_capacity
-            return
-          end
-        else
-          if change_capacity > 0
-            raise "cannot find change output"
-          elsif change_capacity == 0
-            return
-          end
-        end
+        return if self.enough_capacity?(change_output_index, fee_rate)
       end
 
       raise "can't collect enough inputs"
+    end
+
+    def enough_capacity?(change_output_index, fee_rate)
+      # calculate fee and update change output capacity
+      fee = self.transaction.serialized_size_in_block * fee_rate
+      change_capacity = self.inputs_capacity - self.transaction.outputs_capacity - fee
+      if change_output_index
+        change_output = self.transaction.outputs[change_output_index]
+        change_output_data = self.transaction.outputs_data[change_output_index]
+        if change_capacity >= change_output.occupied_capacity(change_output_data)
+          change_output.capacity = change_capacity
+          true
+        end
+      else
+        if change_capacity > 0
+          raise "cannot find change output"
+        elsif change_capacity == 0
+          true
+        end
+      end
     end
 
     # @param contexts  [Hash], key: input lock script, value: tx signature context
