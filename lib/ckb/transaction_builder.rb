@@ -15,8 +15,13 @@ module CKB
       change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
 
       collector.each do |cell_meta|
-        handler = CKB::Config.instance.cell_meta_handler(cell_meta)
-        handler.generate(cell_meta, self, contexts[cell_meta.output.lock])
+        lock_script, type_script = cell_meta.output.lock, cell_meta.output.type
+        lock_handler = CKB::Config.instance.lock_handler(lock_script)
+        lock_handler.generate(cell_meta, self, contexts[lock_script])
+        if type_script
+          type_handler = CKB::Config.instance.type_handler(type_script)
+          type_handler.generate(cell_meta, self)
+        end
         return if self.enough_capacity?(change_output_index, fee_rate)
       end
 
@@ -46,9 +51,14 @@ module CKB
     # @param contexts  [Hash], key: input lock script, value: tx signature context
     def sign(contexts)
       self.cell_metas.each do |cell_meta|
-        handler = CKB::Config.instance.cell_meta_handler(cell_meta)
-        if context = contexts[cell_meta.output.lock]
-          handler.sign(cell_meta, self, context)
+        lock_script, type_script = cell_meta.output.lock, cell_meta.output.type
+        lock_handler = CKB::Config.instance.lock_handler(lock_script)
+        if context = contexts[lock_script]
+          lock_handler.sign(cell_meta, self, context)
+        end
+        if type_script
+          type_handler = CKB::Config.instance.type_handler(type_script)
+          type_handler.sign(cell_meta, self)
         end
       end
     end
