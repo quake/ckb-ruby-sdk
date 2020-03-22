@@ -31,7 +31,7 @@ module CKB
           (self.instance_variables - [:@compute_hash]).each_with_object({}) do |attr, h|
             value = self.instance_variable_get(attr)
             unless value.nil?
-              _v = if value.is_a?(Array)
+              _v = if value.class == Array
                 if value.empty?
                   []
                 elsif value.first.is_a?(Integer)

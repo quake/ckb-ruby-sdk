@@ -122,4 +122,10 @@ class AddressTest < Minitest::Test
     error = assert_raises(CKB::Address::ParseError) {CKB::Address.parse(address)}
     assert_equal "invalid payload size", error.message
   end
+
+  def test_empty_args_parse_and_as_json
+    address = "ckt1qgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqparrr6"
+    parsed_script, _payload_type, _hrp = CKB::Address.parse(address)
+    assert_equal("0x", parsed_script.as_json["args"])
+  end
 end
