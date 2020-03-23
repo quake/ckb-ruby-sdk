@@ -6,11 +6,12 @@ module CKB
       self.input_scripts = (from_addresses.is_a?(Array) ? from_addresses : [from_addresses]).map do |address|
         CKB::Address.parse(address).first
       end
-      self.collector = if collector_type == :default_indexer
+      collector = if collector_type == :default_indexer
         CKB::Collector.default_indexer(self.input_scripts.map{|script| script.compute_hash.to_hex})
       else
         CKB::Collector.default_scanner(self.input_scripts.map{|script| script.compute_hash.to_hex})
       end
+      self.collector = CKB::Wallet.collector_filter(collector)
     end
 
     # @param to_address   [String]
@@ -54,6 +55,21 @@ module CKB
     def advance_sign(tx_builder, contexts)
       tx_builder.sign(Hash[self.input_scripts.zip(contexts)])
       tx_builder.transaction
+    end
+
+    def self.collector_filter(collector)
+      Enumerator.new do |result|
+        loop do
+          begin
+            cell_meta = collector.next
+            if cell_meta.output_data_len == 0 && cell_meta.output.type == nil
+              result << cell_meta
+            end
+          rescue StopIteration
+            break
+          end
+        end
+      end
     end
   end
 end

@@ -16,7 +16,8 @@ module CKB::Collector
             cell_metas = []
           else
             cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, from + 100).map do |h|
-              CKB::CellMeta.new(CKB::Types::OutPoint.new(h[:out_point]), CKB::Types::Output.new(h))
+              output_data_len, cellbase = h[:output_data_len].to_i(16), h[:cellbase]
+              CKB::CellMeta.new(CKB::Types::OutPoint.new(h[:out_point]), CKB::Types::Output.new(h), output_data_len, cellbase)
             end
             if cell_metas.empty?
               store.mark_if_necessary(lock_hash, from + 100, tip_number)
@@ -79,7 +80,8 @@ module CKB::Collector
         else
           cell_metas_index = 0
           cell_metas = rpc.get_live_cells_by_lock_hash(lock_hashes[lock_hash_index], page, 50).map do |h|
-            CKB::CellMeta.new(CKB::Types::OutPoint.new(tx_hash: h[:created_by][:tx_hash], index: h[:created_by][:index]), CKB::Types::Output.new(h[:cell_output]))
+            output_data_len, cellbase = h[:output_data_len].to_i(16), h[:cellbase]
+            CKB::CellMeta.new(CKB::Types::OutPoint.new(tx_hash: h[:created_by][:tx_hash], index: h[:created_by][:index]), CKB::Types::Output.new(h[:cell_output]), output_data_len, cellbase)
           end
           page += 1
           if cell_metas.empty?

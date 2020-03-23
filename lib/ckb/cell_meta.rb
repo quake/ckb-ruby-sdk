@@ -2,11 +2,13 @@ require "secp256k1"
 
 module CKB
   class CellMeta
-    attr_accessor :out_point, :output
+    attr_accessor :out_point, :output, :output_data_len, :cellbase
 
-    def initialize(out_point, output)
+    def initialize(out_point, output, output_data_len, cellbase)
       self.out_point = out_point
       self.output = output
+      self.output_data_len = output_data_len
+      self.cellbase = cellbase
     end
 
     SIGNATURE_PLACE_HOLDER = Array.new(65, 0)
