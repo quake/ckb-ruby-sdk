@@ -3,12 +3,17 @@ require "secp256k1"
 module CKB
   class CellMeta
     attr_accessor :out_point, :output, :output_data_len, :cellbase
+    attr_writer :output_data
 
     def initialize(out_point, output, output_data_len, cellbase)
       self.out_point = out_point
       self.output = output
       self.output_data_len = output_data_len
       self.cellbase = cellbase
+    end
+
+    def output_data
+      @output_data ||= CKB::Config.instance.rpc.get_live_cell(self.out_point.as_json, true)[:cell][:data][:content].from_hex.bytes
     end
 
     SIGNATURE_PLACE_HOLDER = Array.new(65, 0)
@@ -107,6 +112,25 @@ module CKB
             end
           end
         end
+      end
+    end
+
+    class Sudt
+      attr_accessor :cell_dep
+
+      def initialize(sudt_tx_hash)
+        self.cell_dep =  CKB::Types::CellDep.new(
+          out_point: CKB::Types::OutPoint.new(tx_hash: sudt_tx_hash, index: 0),
+          dep_type: CKB::Types::CellDep::DEP_TYPE_CODE
+        )
+      end
+
+      def generate(cell_meta, tx_builder)
+        tx_builder.transaction.cell_deps << cell_dep unless tx_builder.transaction.cell_deps.include?(cell_dep)
+      end
+
+      def sign(cell_meta, tx_builder)
+        # do nothing
       end
     end
   end

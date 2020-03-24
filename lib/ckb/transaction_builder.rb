@@ -12,6 +12,17 @@ module CKB
     # @param contexts  [Hash], key: input lock script, value: tx generating context
     # @param fee_rate  [Integer] Default 1 shannon / transaction byte
     def generate(collector, contexts, fee_rate = 1)
+      self.transaction.outputs.each_with_index do |output, index|
+        if type_script = output.type
+          if type_handler = CKB::Config.instance.type_handler(type_script)
+            output_data = self.transaction.outputs_data[index]
+            cell_meta = CKB::CellMeta.new(nil, output, output_data.size, false)
+            cell_meta.output_data = output_data
+            type_handler.generate(cell_meta, self)
+          end
+        end
+      end
+
       change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
 
       collector.each do |cell_meta|

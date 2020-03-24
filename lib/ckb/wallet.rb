@@ -1,17 +1,12 @@
 module CKB
   class Wallet
-    attr_accessor :input_scripts, :collector
+    attr_accessor :input_scripts, :collector_type
 
     def initialize(from_addresses, collector_type = :default_scanner)
       self.input_scripts = (from_addresses.is_a?(Array) ? from_addresses : [from_addresses]).map do |address|
         CKB::Address.parse(address).first
       end
-      collector = if collector_type == :default_indexer
-        CKB::Collector.default_indexer(self.input_scripts.map{|script| script.compute_hash.to_hex})
-      else
-        CKB::Collector.default_scanner(self.input_scripts.map{|script| script.compute_hash.to_hex})
-      end
-      self.collector = CKB::Wallet.collector_filter(collector)
+      self.collector_type = collector_type
     end
 
     # @param to_address   [String]
@@ -48,7 +43,7 @@ module CKB
         version: 0, cell_deps: [], header_deps: [], inputs: [],
         outputs: outputs, outputs_data: outputs_data, witnesses: []
       })
-      tx_builder.generate(collector, Hash[self.input_scripts.zip(contexts)])
+      tx_builder.generate(self.collector, Hash[self.input_scripts.zip(contexts)])
       tx_builder
     end
 
@@ -57,7 +52,13 @@ module CKB
       tx_builder.transaction
     end
 
-    def self.collector_filter(collector)
+    def collector
+      collector = if self.collector_type == :default_indexer
+        CKB::Collector.default_indexer(self.input_scripts.map{|script| script.compute_hash.to_hex})
+      else
+        CKB::Collector.default_scanner(self.input_scripts.map{|script| script.compute_hash.to_hex})
+      end
+
       Enumerator.new do |result|
         loop do
           begin
