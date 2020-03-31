@@ -1,4 +1,7 @@
 module CKB::Collector
+  MAX_PAGINATES_PER = 50
+  MAX_PAGE_SIZE = 100
+
   def self.default_scanner(lock_hashes, store_file = nil)
     rpc = CKB::Config.instance.rpc
     tip_number = rpc.get_tip_block_number.to_i(16)
@@ -15,12 +18,12 @@ module CKB::Collector
           if store.skip_scan_util(lock_hash) < from
             cell_metas = []
           else
-            cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, from + 100).map do |h|
+            cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, from + MAX_PAGE_SIZE).map do |h|
               output_data_len, cellbase = h[:output_data_len].to_i(16), h[:cellbase]
               CKB::CellMeta.new(CKB::Types::OutPoint.new(h[:out_point]), CKB::Types::Output.new(h), output_data_len, cellbase)
             end
             if cell_metas.empty?
-              store.mark_if_necessary(lock_hash, from + 100, tip_number)
+              store.mark_if_necessary(lock_hash, from + MAX_PAGE_SIZE, tip_number)
             else
               store.stop_mark(lock_hash)
             end
@@ -28,7 +31,7 @@ module CKB::Collector
           lock_hash_index += 1
           if lock_hash_index >= lock_hashes.size
             lock_hash_index = 0
-            from += 100
+            from += MAX_PAGE_SIZE + 1
           end
         end
       end
@@ -79,7 +82,7 @@ module CKB::Collector
           cell_metas_index += 1
         else
           cell_metas_index = 0
-          cell_metas = rpc.get_live_cells_by_lock_hash(lock_hashes[lock_hash_index], page, 50).map do |h|
+          cell_metas = rpc.get_live_cells_by_lock_hash(lock_hashes[lock_hash_index], page, MAX_PAGINATES_PER).map do |h|
             output_data_len, cellbase = h[:output_data_len].to_i(16), h[:cellbase]
             CKB::CellMeta.new(CKB::Types::OutPoint.new(tx_hash: h[:created_by][:tx_hash], index: h[:created_by][:index]), CKB::Types::Output.new(h[:cell_output]), output_data_len, cellbase)
           end
