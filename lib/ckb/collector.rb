@@ -15,7 +15,7 @@ module CKB::Collector
         else
           cell_metas_index = 0
           lock_hash = lock_hashes[lock_hash_index]
-          if store.skip_scan_util(lock_hash) < from
+          if store.skip_scan_until(lock_hash) > from
             cell_metas = []
           else
             cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, from + MAX_PAGE_SIZE).map do |h|
@@ -63,7 +63,7 @@ module CKB::Collector
       end
     end
 
-    def skip_scan_util(lock_hash)
+    def skip_scan_until(lock_hash)
       self.store[lock_hash].to_i
     end
 
