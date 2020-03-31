@@ -23,7 +23,7 @@ module CKB::Collector
               CKB::CellMeta.new(CKB::Types::OutPoint.new(h[:out_point]), CKB::Types::Output.new(h), output_data_len, cellbase)
             end
             if cell_metas.empty?
-              store.mark_if_necessary(lock_hash, from + MAX_PAGE_SIZE, tip_number)
+              store.mark_if_necessary(lock_hash, from, tip_number)
             else
               store.stop_mark(lock_hash)
             end
@@ -57,7 +57,7 @@ module CKB::Collector
     end
 
     def mark_if_necessary(lock_hash, from, tip_number)
-      unless self.none_empty_lock_hashes.include?(lock_hash) || from > tip_number
+      unless self.none_empty_lock_hashes.include?(lock_hash) || from + MAX_PAGE_SIZE > tip_number
         self.store[lock_hash] = from
         File.write(self.store_file, self.store.to_json)
       end
