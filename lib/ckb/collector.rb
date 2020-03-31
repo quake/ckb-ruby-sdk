@@ -6,6 +6,7 @@ module CKB::Collector
     from, lock_hash_index, cell_metas_index, cell_metas = store.min_from, 0, 0, []
     Enumerator.new do |result|
       while cell_metas_index < cell_metas.size || from <= tip_number
+        current_to = [from + 100, tip_number].min
         if cell_metas_index < cell_metas.size
           result << cell_metas[cell_metas_index]
           cell_metas_index += 1
@@ -15,7 +16,7 @@ module CKB::Collector
           if store.skip_scan_util(lock_hash) < from
             cell_metas = []
           else
-            cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, from + 100).map do |h|
+            cell_metas = rpc.get_cells_by_lock_hash(lock_hash, from, current_to).map do |h|
               output_data_len, cellbase = h[:output_data_len].to_i(16), h[:cellbase]
               CKB::CellMeta.new(CKB::Types::OutPoint.new(h[:out_point]), CKB::Types::Output.new(h), output_data_len, cellbase)
             end
@@ -28,7 +29,7 @@ module CKB::Collector
           lock_hash_index += 1
           if lock_hash_index >= lock_hashes.size
             lock_hash_index = 0
-            from += 100
+            from = current_to + 1
           end
         end
       end
