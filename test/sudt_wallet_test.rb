@@ -13,7 +13,7 @@ class SudtWalletTest < Minitest::Test
   # => 0xa5ecbaf702d3feef653f52867a0a7c9f2c872f043a0e5e7a81e29c58e9c4f084
   #
   def setup
-    CKB::Config.instance.type_handlers[[CKB::SudtWallet::SUDT_CODE_HASH, CKB::Types::Script::HASH_TYPE_DATA]] = CKB::CellMeta::Sudt.new("0xa5ecbaf702d3feef653f52867a0a7c9f2c872f043a0e5e7a81e29c58e9c4f084")
+    CKB::Config.instance.type_handlers[[CKB::SudtWallet::SUDT_CODE_HASH, CKB::Types::Script::HASH_TYPE_DATA]] = CKB::Handlers::Sudt.new("0xa5ecbaf702d3feef653f52867a0a7c9f2c872f043a0e5e7a81e29c58e9c4f084")
   end
 
   # `0x32e555f3ff8e135cece1351a6a2971518392c1e30375c1e006ad0ce8eac07947` is the script hash of `ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37`

@@ -8,8 +8,8 @@ module CKB
 
     def initialize
       self.lock_handlers = {
-        [CKB::Types::Script::SECP256K1_BLAKE160_SIGHASH_ALL_TYPE_HASH, CKB::Types::Script::HASH_TYPE_TYPE] => CKB::CellMeta::DefaultSighash,
-        [CKB::Types::Script::SECP256K1_BLAKE160_MULTISIG_ALL_TYPE_HASH, CKB::Types::Script::HASH_TYPE_TYPE] => CKB::CellMeta::DefaultMultisig
+        [CKB::Types::Script::SECP256K1_BLAKE160_SIGHASH_ALL_TYPE_HASH, CKB::Types::Script::HASH_TYPE_TYPE] => CKB::Handlers::DefaultSighash.new,
+        [CKB::Types::Script::SECP256K1_BLAKE160_MULTISIG_ALL_TYPE_HASH, CKB::Types::Script::HASH_TYPE_TYPE] => CKB::Handlers::DefaultMultisig.new
       }
       self.type_handlers = {}
       self.rpc_uri = "http://127.0.0.1:8114"

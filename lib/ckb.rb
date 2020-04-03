@@ -1,6 +1,7 @@
 require "ckb/version"
 require "ckb/blake2b"
 require "ckb/types/types"
+require "ckb/handlers/handlers"
 require "ckb/cell_meta"
 require "ckb/config"
 require "ckb/address"
