@@ -92,6 +92,18 @@ data = File.read("/your-path-to/binary").unpack("C*")
 tx_builder = wallet.build("ckt1qgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqparrr6", 1800_0000_0000, {data: data})
 ```
 
+Deploy a contract binary with type id
+
+```ruby
+data = File.read("/your-path-to/binary").unpack("C*")
+type_script = CKB::Types::Script.new(
+    code_hash: CKB::Types::Script::TYPE_ID_HASH,
+    args: CKB::Types::Bytes.new(Array.new(32, 0)),
+    hash_type: CKB::Types::Script::HASH_TYPE_TYPE
+)
+tx_builder = wallet.build("ckt1qgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqparrr6", 1800_0000_0000, {data: data, type: type_script})
+```
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

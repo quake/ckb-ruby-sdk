@@ -73,4 +73,19 @@ class WalletTest < Minitest::Test
     rpc = CKB::Config.instance.rpc
     rpc.send_transaction(tx.as_json)
   end
+
+  def test_deploy_contract_with_type_id
+    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+    data = File.read(File.expand_path("fixtures/always_success", File.dirname(__FILE__))).unpack("C*")
+    type_script = CKB::Types::Script.new(
+      code_hash: CKB::Types::Script::TYPE_ID_HASH,
+      args: CKB::Types::Bytes.new(Array.new(32, 0)),
+      hash_type: CKB::Types::Script::HASH_TYPE_TYPE
+    )
+    tx_builder = wallet.build("ckt1qgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqparrr6", 500_0000_0000, {data: data, type: type_script})
+    tx = wallet.sign(tx_builder, "0xd00c06bfd800d27397002dca6fb0993d5ba6399b4238b2f29ee9deb97593d2bc".from_hex)
+
+    rpc = CKB::Config.instance.rpc
+    rpc.send_transaction(tx.as_json)
+  end
 end
