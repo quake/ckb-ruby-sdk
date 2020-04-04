@@ -12,6 +12,7 @@ module CKB
     # @param contexts  [Hash], key: input lock script, value: tx generating context
     # @param fee_rate  [Integer] Default 1 shannon / transaction byte
     def generate(collector, contexts, fee_rate = 1)
+      # run outputs type script handler
       self.transaction.outputs.each_with_index do |output, index|
         if type_script = output.type
           if type_handler = CKB::Config.instance.type_handler(type_script)
@@ -24,7 +25,7 @@ module CKB
       end
 
       change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
-
+      # run inputs lock and type script handler
       collector.each do |cell_meta|
         lock_script, type_script = cell_meta.output.lock, cell_meta.output.type
         lock_handler = CKB::Config.instance.lock_handler(lock_script)
@@ -61,6 +62,19 @@ module CKB
 
     # @param contexts  [Hash], key: input lock script, value: tx signature context
     def sign(contexts)
+      # run outputs type script handler
+      self.transaction.outputs.each_with_index do |output, index|
+        if type_script = output.type
+          if type_handler = CKB::Config.instance.type_handler(type_script)
+            output_data = self.transaction.outputs_data[index]
+            cell_meta = CKB::CellMeta.new(nil, output, output_data.size, false)
+            cell_meta.output_data = output_data
+            type_handler.sign(cell_meta, self)
+          end
+        end
+      end
+
+      # run inputs lock and type script handler
       self.cell_metas.each do |cell_meta|
         lock_script, type_script = cell_meta.output.lock, cell_meta.output.type
         lock_handler = CKB::Config.instance.lock_handler(lock_script)

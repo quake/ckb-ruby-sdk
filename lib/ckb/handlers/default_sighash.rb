@@ -19,8 +19,8 @@ module CKB
 
       # @param context      [String] private key string in raw format
       def sign(cell_meta, tx_builder, context)
+        lock = cell_meta.output.lock
         cell_meta_index = tx_builder.cell_metas.find_index{|cm| cm.out_point == cell_meta.out_point}
-        lock = tx_builder.cell_metas[cell_meta_index].output.lock
         grouped_indexes = tx_builder.cell_metas.map.with_index{|cm, index| index if cm.output.lock == lock }.compact
         if cell_meta_index == grouped_indexes.first
           transaction = tx_builder.transaction
