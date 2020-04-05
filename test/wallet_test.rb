@@ -13,7 +13,7 @@ class WalletTest < Minitest::Test
   # ./ckb-cli tx build-multisig-address --sighash-address ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37 --sighash-address ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4 --sighash-address ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze --threshold 2
 
   def test_gen_tx_by_default_scanner
-    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+    wallet = CKB::Wallets::Simple.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
     # build tx to transfer 421 ckb to a multisig address
     tx_builder = wallet.build("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem", 421_0000_0000)
     # sign with from address's private key
@@ -27,7 +27,7 @@ class WalletTest < Minitest::Test
   # and index with lock hash by rpc first:
   # CKB::Config.instance.rpc.index_lock_hash("0xc219351b150b900e50a7039f1e448b844110927e5fd9bd30425806cb8ddff1fd", 0)
   def test_gen_tx_by_default_indexer
-    wallet = CKB::Wallet.new("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", :default_indexer)
+    wallet = CKB::Wallets::Simple.new("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", :default_indexer)
     # build tx to transfer 1024 ckb to a multisig address
     tx_builder = wallet.build("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem", 1024_0000_0000)
     # sign with from address's private key
@@ -38,7 +38,7 @@ class WalletTest < Minitest::Test
   end
 
   def test_gen_multisig_tx
-    wallet = CKB::Wallet.new("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem")
+    wallet = CKB::Wallets::Simple.new("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem")
     # build tx to transfer 124 ckb from a 2 / 3 multisig script address
     tx_builder = wallet.build("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", 124_0000_0000, {context: [0, 0, 2, 3, "0xc8328aabcd9b9e8e64fbc566c4385c3bdeb219d7".from_hex, "0x470dcdc5e44064909650113a274b3b36aecb6dc7".from_hex, "0x33fe4161344f2df80ab6f08d8a75d9b7d1d790b2".from_hex]})
     # sign with two private keys
@@ -50,7 +50,7 @@ class WalletTest < Minitest::Test
   end
 
   def test_advance_build
-    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+    wallet = CKB::Wallets::Simple.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
     # build tx to transfer 1234 and 4321 ckb to two addresses
     tx_builder = wallet.advance_build(
       "ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze" => {capacity: 1234_0000_0000},
@@ -64,7 +64,7 @@ class WalletTest < Minitest::Test
   end
 
   def test_advance_sign
-    wallet = CKB::Wallet.new(["ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze", "ckt1qyq0myesdwxwntsra2m75xtp8k7q8nphjmksxyzz0c"])
+    wallet = CKB::Wallets::Simple.new(["ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze", "ckt1qyq0myesdwxwntsra2m75xtp8k7q8nphjmksxyzz0c"])
     tx_builder = wallet.build("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem", 5000_0000_0000)
     # equivalent to `tx = wallet.advance_sign(tx_builder, [private_key1, private_key2])`
     wallet.advance_sign(tx_builder, ["0x92116fee8735bd5d95f5f0e773a887f1a7d0b3d0c6007c8a66f844acffb9adc0".from_hex, nil])
@@ -75,7 +75,7 @@ class WalletTest < Minitest::Test
   end
 
   def test_deploy_contract_with_type_id
-    wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+    wallet = CKB::Wallets::Simple.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
     data = File.read(File.expand_path("fixtures/always_success", File.dirname(__FILE__))).unpack("C*")
     type_script = CKB::Types::Script.new(
       code_hash: CKB::Types::Script::TYPE_ID_HASH,

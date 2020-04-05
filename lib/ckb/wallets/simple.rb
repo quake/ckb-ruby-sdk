@@ -1,5 +1,5 @@
-module CKB
-  class Wallet
+module CKB::Wallets
+  class Simple
     attr_accessor :input_scripts, :collector_type
 
     def initialize(from_addresses, collector_type = :default_scanner)

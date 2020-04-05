@@ -59,7 +59,7 @@ Send capacity
 
 ```ruby
 # create wallet object
-wallet = CKB::Wallet.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
+wallet = CKB::Wallets::Simple.new("ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37")
 # build transaction
 tx_builder = wallet.build("ckt1qyqywrwdchjyqeysjegpzw38fvandtktdhrs0zaxl4", 100_0000_0000)
 # sign
@@ -80,7 +80,7 @@ tx_builder = wallet.advance_build(
 Collect inputs with multiple addresses
 
 ```ruby
-wallet = CKB::Wallet.new(["ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze", "ckt1qyq0myesdwxwntsra2m75xtp8k7q8nphjmksxyzz0c"])
+wallet = CKB::Wallets::Simple.new(["ckt1qyqr8ljpvy6y7t0cp2m0prv2whvm05whjzeqaydfze", "ckt1qyq0myesdwxwntsra2m75xtp8k7q8nphjmksxyzz0c"])
 tx_builder = wallet.build("ckt1qyqkqqppzt0svxzyedfe7jt0dhxhd9rvt2dskqrjem", 5000_0000_0000)
 tx = wallet.sign(tx_builder, ["0x92116fee8735bd5d95f5f0e773a887f1a7d0b3d0c6007c8a66f844acffb9adc0".from_hex, "0x252948dddb55a54c93bf05c468acbaa6683c763c39132e71fd8ecb9fb6f88f5d".from_hex])
 ```

@@ -12,9 +12,11 @@ module CKB
         )
       end
 
-      def as_json
+      def to_hex
         "0x#{self.pack("C*").unpack("H*").first}"
       end
+
+      alias as_json to_hex
     end
 
     class H256 < HexStringInitializeArray
