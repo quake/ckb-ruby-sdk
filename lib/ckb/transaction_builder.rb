@@ -16,10 +16,7 @@ module CKB
       self.transaction.outputs.each_with_index do |output, index|
         if type_script = output.type
           if type_handler = CKB::Config.instance.type_handler(type_script)
-            output_data = self.transaction.outputs_data[index]
-            cell_meta = CKB::CellMeta.new(nil, output, output_data.size, false)
-            cell_meta.output_data = output_data
-            type_handler.generate(cell_meta, self)
+            type_handler.generate(index, self)
           end
         end
       end
@@ -66,10 +63,7 @@ module CKB
       self.transaction.outputs.each_with_index do |output, index|
         if type_script = output.type
           if type_handler = CKB::Config.instance.type_handler(type_script)
-            output_data = self.transaction.outputs_data[index]
-            cell_meta = CKB::CellMeta.new(nil, output, output_data.size, false)
-            cell_meta.output_data = output_data
-            type_handler.sign(cell_meta, self)
+            type_handler.sign(index, self)
           end
         end
       end

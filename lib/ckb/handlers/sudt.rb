@@ -10,11 +10,11 @@ module CKB
         )
       end
 
-      def generate(cell_meta, tx_builder)
+      def generate(cell_meta_or_output_index, tx_builder)
         tx_builder.transaction.cell_deps << cell_dep unless tx_builder.transaction.cell_deps.include?(cell_dep)
       end
 
-      def sign(cell_meta, tx_builder)
+      def sign(cell_meta_or_output_index, tx_builder)
         # do nothing
       end
     end
