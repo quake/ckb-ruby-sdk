@@ -79,7 +79,6 @@ class WalletTest < Minitest::Test
     data = File.read(File.expand_path("fixtures/always_success", File.dirname(__FILE__))).unpack("C*")
     type_script = CKB::Types::Script.new(
       code_hash: CKB::Types::Script::TYPE_ID_HASH,
-      args: CKB::Types::Bytes.new(Array.new(32, 0)),
       hash_type: CKB::Types::Script::HASH_TYPE_TYPE
     )
     tx_builder = wallet.build("ckt1qgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqparrr6", 500_0000_0000, {data: data, type: type_script})
