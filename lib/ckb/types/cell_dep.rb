@@ -27,6 +27,14 @@ module CKB
           dep_type: CellDep::DEP_TYPE_DEP_GROUP
         )
       end
+
+      def self.dao
+        genesis_block = CKB::Config.instance.rpc.genesis_block
+        CellDep.new(
+          out_point: CKB::Types::OutPoint.new(tx_hash: CKB::Types::Transaction.new(genesis_block[:transactions][0]).compute_hash.to_hex, index: 2),
+          dep_type: CellDep::DEP_TYPE_CODE
+        )
+      end
     end
   end
 end

@@ -16,7 +16,7 @@ module CKB
       self.transaction.outputs.each_with_index do |output, index|
         if type_script = output.type
           if type_handler = CKB::Config.instance.type_handler(type_script)
-            type_handler.generate(index, self)
+            type_handler.generate_with_output(index, self)
           end
         end
       end
@@ -63,7 +63,7 @@ module CKB
       self.transaction.outputs.each_with_index do |output, index|
         if type_script = output.type
           if type_handler = CKB::Config.instance.type_handler(type_script)
-            type_handler.sign(index, self)
+            type_handler.sign_with_output(index, self)
           end
         end
       end

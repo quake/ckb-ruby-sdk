@@ -31,6 +31,22 @@ module CKB
       def occupied_capacity
         args.size + 32 + 1
       end
+
+      def self.dao_script
+        self.new(
+          code_hash: CKB::Types::Script::DAO_TYPE_HASH,
+          args: "0x",
+          hash_type: CKB::Types::Script::HASH_TYPE_TYPE
+        )
+      end
+
+      def self.type_id_script
+        self.new(
+          code_hash: CKB::Types::Script::TYPE_ID_HASH,
+          args: "0x",
+          hash_type: CKB::Types::Script::HASH_TYPE_TYPE
+        )
+      end
     end
   end
 end
