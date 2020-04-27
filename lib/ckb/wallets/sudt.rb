@@ -1,18 +1,19 @@
 module CKB::Wallets
   class Sudt < Simple
+    DATA_PLACE_HOLDER = CKB::Types::Bytes.new(Array.new(16, 0))
+
     attr_accessor :sudt, :is_issuer
 
     def initialize(from_addresses, sudt, collector_type = :default_scanner)
       super(from_addresses, collector_type)
       self.sudt = sudt
-      # CKB::Types::Script.new(code_hash: SUDT_CODE_HASH, args: sudt_args, hash_type: "data")
       self.is_issuer = self.input_scripts.size == 1 && self.input_scripts.first.compute_hash.to_hex == self.sudt.args.to_hex
     end
 
     # @param to_address   [String]
     # @param udt_capacity [Integer]
-    def build(to_address, sudt_capacity, output_info = {})
-      data = [sudt_capacity].u64_serialize + [sudt_capacity >> 64].u64_serialize
+    def build(to_address, sudt_amount, output_info = {})
+      data = [sudt_amount].u64_serialize + [sudt_amount >> 64].u64_serialize
       lock = CKB::Address.parse(to_address).first
       output = CKB::Types::Output.new(lock: lock, type: self.sudt)
       capacity = output.occupied_capacity(data)
@@ -40,8 +41,13 @@ module CKB::Wallets
           outputs << CKB::Types::Output.new(capacity: 0, lock: self.input_scripts.first, type: nil)
           outputs_data << CKB::Types::Bytes.new([])
         else
-          outputs << CKB::Types::Output.new(capacity: 0, lock: self.input_scripts.first, type: self.sudt)
-          outputs_data << CKB::Types::Bytes.new(Array.new(16, 0))
+          output = CKB::Types::Output.new(lock: self.input_scripts.first, type: self.sudt)
+          output.capacity = output.occupied_capacity(DATA_PLACE_HOLDER)
+          outputs << output
+          outputs_data << DATA_PLACE_HOLDER.dup
+
+          outputs << CKB::Types::Output.new(capacity: 0, lock: self.input_scripts.first, type: nil)
+          outputs_data << CKB::Types::Bytes.new([])
         end
       end
 
@@ -79,24 +85,31 @@ module CKB::Wallets
   class SudtTransactionBuilder < CKB::TransactionBuilder
     attr_accessor :is_issuer
 
-    def enough_capacity?(change_output_index, fee_rate)
-      if super(change_output_index, fee_rate)
+    def enough_capacity?(change_capacity_output_index, fee_rate)
+      if super(change_capacity_output_index, fee_rate)
         if self.is_issuer
           true
         else
-          inputs_sudt_capacity = cell_metas.select{|cm| cm.output.type != nil}.map{|cm| sudt_capacity(cm.output_data)}.sum
-          outputs_sudt_capacity = self.transaction.outputs_data.map{|output_data| sudt_capacity(output_data)}.sum
-          change_capacity = inputs_sudt_capacity - outputs_sudt_capacity
-          if change_capacity >= 0
-            data = [change_capacity].u64_serialize + [change_capacity >> 64].u64_serialize
-            self.transaction.outputs_data[change_output_index] = CKB::Types::Bytes.new(data)
+          inputs_sudt_amount = cell_metas.select{|cm| cm.output.type != nil}.map{|cm| sudt_amount(cm.output_data)}.sum
+          outputs_sudt_amount = self.transaction.outputs_data.map{|output_data| sudt_amount(output_data)}.sum
+          change_sudt_amount = inputs_sudt_amount - outputs_sudt_amount
+          if change_sudt_amount > 0
+            data = [change_sudt_amount].u64_serialize + [change_sudt_amount >> 64].u64_serialize
+            change_sudt_output_index = self.transaction.outputs_data.find_index(Sudt::DATA_PLACE_HOLDER)
+            self.transaction.outputs_data[change_sudt_output_index] = CKB::Types::Bytes.new(data)
+            true
+          elsif change_sudt_amount == 0
+            change_sudt_output_index = self.transaction.outputs_data.find_index(Sudt::DATA_PLACE_HOLDER)
+            self.transaction.outputs[change_capacity_output_index].capacity += self.transaction.outputs[change_sudt_output_index].capacity
+            self.transaction.outputs.delete_at(change_sudt_output_index)
+            self.transaction.outputs_data.delete_at(change_sudt_output_index)
             true
           end
         end
       end
     end
 
-    def sudt_capacity(output_data)
+    def sudt_amount(output_data)
       output_data.each_with_index.inject(0) {|r, (a, i)| r + a * 256 ** i}
     end
   end

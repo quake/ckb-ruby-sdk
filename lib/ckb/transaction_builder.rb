@@ -21,7 +21,7 @@ module CKB
         end
       end
 
-      change_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0}
+      change_capacity_output_index = self.transaction.outputs.find_index {|output| output.capacity == 0 && output.type.nil?}
       # run inputs lock and type script handler
       collector.each do |cell_meta|
         lock_script, type_script = cell_meta.output.lock, cell_meta.output.type
@@ -31,19 +31,19 @@ module CKB
           type_handler = CKB::Config.instance.type_handler(type_script)
           type_handler.generate(cell_meta, self)
         end
-        return if self.enough_capacity?(change_output_index, fee_rate)
+        return if self.enough_capacity?(change_capacity_output_index, fee_rate)
       end
 
       raise "can't collect enough inputs"
     end
 
-    def enough_capacity?(change_output_index, fee_rate)
+    def enough_capacity?(change_capacity_output_index, fee_rate)
       # calculate fee and update change output capacity
       fee = self.transaction.serialized_size_in_block * fee_rate
       change_capacity = self.inputs_capacity - self.transaction.outputs_capacity - fee
-      if change_output_index
-        change_output = self.transaction.outputs[change_output_index]
-        change_output_data = self.transaction.outputs_data[change_output_index]
+      if change_capacity_output_index
+        change_output = self.transaction.outputs[change_capacity_output_index]
+        change_output_data = self.transaction.outputs_data[change_capacity_output_index]
         if change_capacity >= change_output.occupied_capacity(change_output_data)
           change_output.capacity = change_capacity
           true
