@@ -27,6 +27,19 @@ module CKB
       parsed_response[:result]
     end
 
+    # Batch requests
+    # rpc.batch(["get_header_by_number", 1], ["get_header_by_number", 2])
+    # @param requests [Array] The RPC method name and arguments
+    def batch(*requests)
+      body = requests.map do |request|
+        {method: request[0], params: request[1..-1], jsonrpc: '2.0', id: SecureRandom.uuid}
+      end
+      parsed_response = parse_response(post(body))
+      errors = parsed_response.select{|response| response[:error]}
+      raise Error, errors if !errors.empty?
+      parsed_response.map{|response| response[:result]}
+    end
+
     def genesis_block
       @genesis_block ||= get_block_by_number("0x0")
     end

@@ -53,6 +53,12 @@ rpc = CKB::Config.instance.rpc
 
 # using RPC `get_tip_header`, it will return a Hash
 rpc.get_tip_header
+
+# using RPC `get_header_by_number`, numeric args will be converted to hex string automatically
+rpc.get_header_by_number 42
+
+# batch requests
+rpc.batch(["get_transaction", "0xb307facd11c63639a2ead93e6b77716124d3c2d351037474a010dedcaaf41613"], ["get_transaction", "0x97802da4f798d11240aa38a5bc2a629295bf41e32b232feff2c6d6732cb24610"])
 ```
 
 Send capacity
